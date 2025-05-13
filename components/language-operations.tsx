@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FlagIcon as Union, Combine, ArrowRightLeft, Minus, RefreshCcw } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useAlphabets } from "@/contexts/AlphabetContext"
 import { LanguageService } from "@/lib/services/LanguageService"
 import { Alphabet } from "@/lib/models/Alphabet"
 
@@ -25,10 +26,19 @@ export function LanguageOperations() {
   const [result, setResult] = useState<string[]>([])
   const [operation, setOperation] = useState("")
   const [languageService] = useState(() => new LanguageService())
-  const [alphabets] = useState<AlphabetState[]>([
-    { name: "Alfabeto 1", alphabet: new Alphabet({ a: true, b: true, c: true }) },
-    { name: "Alfabeto 2", alphabet: new Alphabet({ x: true, y: true, z: true }) }
-  ])
+  const { alphabets } = useAlphabets()
+
+  // Actualizar alfabetos seleccionados cuando cambia la lista de alfabetos
+  useEffect(() => {
+    if (alphabets.length > 0) {
+      if (!alphabets.some(a => a.name === alphabet1)) {
+        setAlphabet1(alphabets[0].name)
+      }
+      if (!alphabets.some(a => a.name === alphabet2)) {
+        setAlphabet2(alphabets[0].name)
+      }
+    }
+  }, [alphabets, alphabet1, alphabet2])
 
   const performUnion = () => {
     const alph1 = alphabets.find(a => a.name === alphabet1)?.alphabet

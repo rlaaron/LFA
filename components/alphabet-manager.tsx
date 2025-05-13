@@ -11,16 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alphabet } from "@/lib/models/Alphabet"
 
-interface AlphabetState {
-  name: string;
-  alphabet: Alphabet;
-}
+// Using AlphabetState from context
+import { AlphabetState, useAlphabets } from "@/contexts/AlphabetContext"
 
 export function AlphabetManager() {
-  const [alphabets, setAlphabets] = useState<AlphabetState[]>([
-    { name: "Alfabeto 1", alphabet: new Alphabet({ a: true, b: true, c: true }) },
-    { name: "Alfabeto 2", alphabet: new Alphabet({ x: true, y: true, z: true }) }
-  ])
+  const { alphabets, setAlphabets } = useAlphabets()
   const [selectedAlphabet, setSelectedAlphabet] = useState("Alfabeto 1")
   const [showNewAlphabetDialog, setShowNewAlphabetDialog] = useState(false)
   const [newAlphabetName, setNewAlphabetName] = useState("")

@@ -8,26 +8,30 @@ import { Label } from "@/components/ui/label"
 import { ArrowRightLeft, Check, Combine, RotateCcw, X, Repeat } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useAlphabets } from "@/contexts/AlphabetContext"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { WordService } from "@/lib/services/WordService"
 import { Alphabet } from "@/lib/models/Alphabet"
 
-interface AlphabetState {
-  name: string;
-  alphabet: Alphabet;
-}
-
 export function WordOperations() {
   const [word1, setWord1] = useState("")
   const [word2, setWord2] = useState("")
-  const [power, setPower] = useState("2")
-  const [result, setResult] = useState<{ operation: string; result: string; valid: boolean } | null>(null)
-  const [alphabets, setAlphabets] = useState<AlphabetState[]>([
-    { name: "Alfabeto 1", alphabet: new Alphabet({ a: true, b: true, c: true }) },
-    { name: "Alfabeto 2", alphabet: new Alphabet({ x: true, y: true, z: true }) }
-  ])
   const [selectedAlphabet, setSelectedAlphabet] = useState("Alfabeto 1")
+  const [result, setResult] = useState<{ operation: string; result: string; valid: boolean } | null>(null)
+  const [power, setPower] = useState("2")
   const [wordService] = useState(() => new WordService())
+  const { alphabets } = useAlphabets()
+
+  // Efecto para validar palabras cuando cambia el alfabeto - solo se ejecuta cuando cambia el alfabeto
+  useEffect(() => {
+    const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet)?.alphabet
+    if (!currentAlphabet || !word1) return
+
+    const isValid = wordService.isValid(word1, currentAlphabet)
+    if (!isValid) {
+      setWord1('')
+    }
+  }, [selectedAlphabet, alphabets, wordService])
 
   const validateWord = () => {
     const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet)?.alphabet
@@ -43,7 +47,19 @@ export function WordOperations() {
 
   const concatenateWords = () => {
     const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet)?.alphabet
-    if (!currentAlphabet) return
+    if (!currentAlphabet || !word1 || !word2) return
+
+    const isValid1 = wordService.isValid(word1, currentAlphabet)
+    const isValid2 = wordService.isValid(word2, currentAlphabet)
+
+    if (!isValid1 || !isValid2) {
+      setResult({
+        operation: "Concatenación",
+        result: "Una o ambas palabras no son válidas para el alfabeto seleccionado",
+        valid: false,
+      })
+      return
+    }
 
     try {
       const result = wordService.concatenate(word1, word2, currentAlphabet)
@@ -63,7 +79,17 @@ export function WordOperations() {
 
   const reflectWord = () => {
     const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet)?.alphabet
-    if (!currentAlphabet) return
+    if (!currentAlphabet || !word1) return
+
+    const isValid = wordService.isValid(word1, currentAlphabet)
+    if (!isValid) {
+      setResult({
+        operation: "Reflexión",
+        result: "La palabra no es válida para el alfabeto seleccionado",
+        valid: false,
+      })
+      return
+    }
 
     try {
       const result = wordService.reflect(word1, currentAlphabet)
@@ -83,20 +109,39 @@ export function WordOperations() {
 
   const powerWord = () => {
     const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet)?.alphabet
-    if (!currentAlphabet) return
+    if (!currentAlphabet || !word1) return
+
+    const isValid = wordService.isValid(word1, currentAlphabet)
+    if (!isValid) {
+      setResult({
+        operation: "Potencia",
+        result: "La palabra no es válida para el alfabeto seleccionado",
+        valid: false,
+      })
+      return
+    }
 
     try {
       const powerNum = Number.parseInt(power)
+      if (isNaN(powerNum) || powerNum < 0) {
+        setResult({
+          operation: "Potencia",
+          result: "El exponente debe ser un número entero no negativo",
+          valid: false,
+        })
+        return
+      }
+
       const result = wordService.power(word1, powerNum, currentAlphabet)
       setResult({
-        operation: `Potencia (${power})`,
+        operation: "Potencia",
         result: result,
         valid: true,
       })
     } catch (e) {
       setResult({
-        operation: `Potencia (${power})`,
-        result: "Error: Palabra inválida o exponente negativo",
+        operation: "Potencia",
+        result: "Error al calcular la potencia",
         valid: false,
       })
     }
@@ -104,7 +149,17 @@ export function WordOperations() {
 
   const checkPalindrome = () => {
     const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet)?.alphabet
-    if (!currentAlphabet) return
+    if (!currentAlphabet || !word1) return
+
+    const isValid = wordService.isValid(word1, currentAlphabet)
+    if (!isValid) {
+      setResult({
+        operation: "Palíndromo",
+        result: "La palabra no es válida para el alfabeto seleccionado",
+        valid: false,
+      })
+      return
+    }
 
     const isPalindrome = wordService.isPalindrome(word1, currentAlphabet)
     setResult({
@@ -118,94 +173,104 @@ export function WordOperations() {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-            <div>
-              <CardTitle>Operaciones con Palabras</CardTitle>
-              <CardDescription>Realice operaciones con palabras basadas en el alfabeto definido</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              <Select value={selectedAlphabet} onValueChange={setSelectedAlphabet}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Seleccionar alfabeto" />
-                </SelectTrigger>
-                <SelectContent>
-                  {alphabets.map((alphabetState) => (
-                    <SelectItem key={alphabetState.name} value={alphabetState.name}>
-                      {alphabetState.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <CardTitle>Operaciones con Palabras</CardTitle>
+          <CardDescription>Realice operaciones con palabras basadas en el alfabeto definido</CardDescription>
+          <div className="flex justify-between items-center mt-4">
+            <Label>Alfabeto Seleccionado</Label>
+            <Select value={selectedAlphabet} onValueChange={setSelectedAlphabet}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Seleccionar alfabeto">
+                  {selectedAlphabet}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {alphabets.map((alphabetState) => (
+                  <SelectItem key={alphabetState.name} value={alphabetState.name}>
+                    {alphabetState.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="word1">Palabra 1</Label>
-              <Input
-                id="word1"
-                placeholder="Ingrese una palabra"
-                value={word1}
-                onChange={(e) => setWord1(e.target.value)}
-              />
-            </div>
+            <div className="grid gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="word1">Palabra 1</Label>
+                <Input
+                  id="word1"
+                  placeholder="Ingrese una palabra"
+                  value={word1}
+                  onChange={(e) => setWord1(e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="word2">Palabra 2 (para concatenación)</Label>
-              <Input
-                id="word2"
-                placeholder="Ingrese otra palabra"
-                value={word2}
-                onChange={(e) => setWord2(e.target.value)}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="word2">Palabra 2 (para concatenación)</Label>
+                <Input
+                  id="word2"
+                  placeholder="Ingrese otra palabra"
+                  value={word2}
+                  onChange={(e) => setWord2(e.target.value)}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="power">Potencia</Label>
-              <Input
-                id="power"
-                type="number"
-                min="0"
-                placeholder="2"
-                value={power}
-                onChange={(e) => setPower(e.target.value)}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="power">Potencia</Label>
+                <Input
+                  id="power"
+                  type="number"
+                  min="0"
+                  placeholder="2"
+                  value={power}
+                  onChange={(e) => setPower(e.target.value)}
+                />
+              </div>
 
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              <Button onClick={validateWord} className="flex items-center gap-1">
-                <Check className="h-4 w-4" />
-                Validar
-              </Button>
-              <Button onClick={concatenateWords} className="flex items-center gap-1">
-                <Combine className="h-4 w-4" />
-                Concatenar
-              </Button>
-              <Button onClick={reflectWord} className="flex items-center gap-1">
-                <ArrowRightLeft className="h-4 w-4" />
-                Reflejar
-              </Button>
-              <Button onClick={powerWord} className="flex items-center gap-1">
-                <Repeat className="h-4 w-4" />
-                Potencia
-              </Button>
-              <Button onClick={checkPalindrome} className="flex items-center gap-1">
-                <RotateCcw className="h-4 w-4" />
-                Palíndromo
-              </Button>
-              <Button variant="outline" className="flex items-center gap-1">
-                <X className="h-4 w-4" />
-                Limpiar
-              </Button>
-            </div>
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <Button onClick={validateWord} className="flex items-center gap-1">
+                  <Check className="h-4 w-4" />
+                  Validar
+                </Button>
+                <Button onClick={concatenateWords} className="flex items-center gap-1">
+                  <Combine className="h-4 w-4" />
+                  Concatenar
+                </Button>
+                <Button onClick={reflectWord} className="flex items-center gap-1">
+                  <ArrowRightLeft className="h-4 w-4" />
+                  Reflejar
+                </Button>
+                <Button onClick={powerWord} className="flex items-center gap-1">
+                  <Repeat className="h-4 w-4" />
+                  Potencia
+                </Button>
+                <Button onClick={checkPalindrome} className="flex items-center gap-1">
+                  <RotateCcw className="h-4 w-4" />
+                  Palíndromo
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setWord1('')
+                    setWord2('')
+                    setPower('2')
+                    setResult(null)
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <X className="h-4 w-4" />
+                  Limpiar
+                </Button>
+              </div>
 
-            {result && (
-              <Alert variant={result.valid ? "default" : "destructive"} className="mt-4">
-                <AlertTitle>{result.operation}</AlertTitle>
-                <AlertDescription className="font-mono">{result.result}</AlertDescription>
-              </Alert>
-            )}
+              {result && (
+                <Alert variant={result.valid ? "default" : "destructive"} className="mt-4">
+                  <AlertTitle>{result.operation}</AlertTitle>
+                  <AlertDescription className="font-mono">{result.result}</AlertDescription>
+                </Alert>
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>

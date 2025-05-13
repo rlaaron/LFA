@@ -11,7 +11,7 @@ export function MobileNavigation() {
     <Tabs defaultValue="alphabet" className="w-full">
       <TabsList className="grid grid-cols-5 mb-4">
         <TabsTrigger value="alphabet" className="text-xs p-1">
-          Gestión de Alfabetos
+          Alfabetos
         </TabsTrigger>
         <TabsTrigger value="words" className="text-xs p-1">
           Palabras
