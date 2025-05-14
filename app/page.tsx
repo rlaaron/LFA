@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { InteractiveDemo } from "./components/interactive-demo"
 import { FeatureCarousel } from "./components/feature-carousel"
 import { AnimatedBackground } from "./components/animated-background"
-import { Testimonials } from "./components/testimonials"
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0)
@@ -224,16 +223,6 @@ export default function Home() {
           </Link>
         </section>
         
-        {/* Testimonials section */}
-        <section 
-          className={`transition-all duration-700 ${
-            scrollY > 900 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
-        >
-          <h2 className="text-2xl font-semibold text-center mb-6">Experiencias de Usuarios</h2>
-          <Testimonials />
-        </section>
-
         {/* Collaboration Section con animación al scroll */}
         <section 
           className={`space-y-6 transition-all duration-700 ${
