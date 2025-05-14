@@ -18,7 +18,8 @@ const AlphabetContext = createContext<AlphabetContextType | undefined>(undefined
 export function AlphabetProvider({ children }: { children: ReactNode }) {
   const [alphabets, setAlphabets] = useState<AlphabetState[]>([
     { name: "Alfabeto 1", alphabet: new Alphabet({ a: true, b: true, c: true }) },
-    { name: "Alfabeto 2", alphabet: new Alphabet({ x: true, y: true, z: true }) }
+    { name: "Alfabeto 2", alphabet: new Alphabet({ x: true, y: true, z: true }) },
+    { name: "Alfabeto 3", alphabet: new Alphabet({ "1": true, "11": true, "01": true }) }
   ])
 
   return (
