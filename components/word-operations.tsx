@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { ArrowRightLeft, Check, Combine, RotateCcw, X, Repeat } from "lucide-react"
+import { ArrowRightLeft, Check, Combine, RotateCcw, X, Repeat, Ruler } from "lucide-react"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { useAlphabets } from "@/contexts/AlphabetContext"
@@ -169,6 +169,28 @@ export function WordOperations() {
     })
   }
 
+  const calculateLength = () => {
+    const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet)?.alphabet
+    if (!currentAlphabet || !word1) return
+
+    const isValid = wordService.isValid(word1, currentAlphabet)
+    if (!isValid) {
+      setResult({
+        operation: "Longitud",
+        result: "La palabra no es válida para el alfabeto seleccionado",
+        valid: false,
+      })
+      return
+    }
+
+    const wordLength = wordService.length(word1, currentAlphabet)
+    setResult({
+      operation: "Longitud",
+      result: `La longitud de la palabra es: ${wordLength}`,
+      valid: true,
+    })
+  }
+
   return (
     <div className="space-y-6">
       <Card>
@@ -249,6 +271,10 @@ export function WordOperations() {
                   <RotateCcw className="h-4 w-4" />
                   Palíndromo
                 </Button>
+                <Button onClick={calculateLength} className="flex items-center gap-1">
+                  <Ruler className="h-4 w-4" />
+                  Longitud
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => {
@@ -305,6 +331,12 @@ export function WordOperations() {
             <AccordionItem value="item-5">
               <AccordionTrigger>Palíndromo</AccordionTrigger>
               <AccordionContent>Verifica si una palabra es igual a su reflexión.</AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="item-6">
+              <AccordionTrigger>Longitud</AccordionTrigger>
+              <AccordionContent>
+                Calcula la longitud de una palabra basada en los símbolos del alfabeto. Por ejemplo, si el alfabeto tiene símbolos como "1", "11", "01", la palabra "111" podría tener longitud 2 (interpretada como "11"+"1").
+              </AccordionContent>
             </AccordionItem>
           </Accordion>
         </CardContent>
