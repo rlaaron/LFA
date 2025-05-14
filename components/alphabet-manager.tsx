@@ -86,6 +86,138 @@ export function AlphabetManager() {
       // Error al parsear JSON
     }
   }
+  
+  const exportAlphabetAsJson = () => {
+    try {
+      const currentAlphabet = alphabets.find(a => a.name === selectedAlphabet);
+      if (!currentAlphabet) return;
+      
+      // Crear el objeto de datos para exportar
+      const exportData = {
+        name: currentAlphabet.name,
+        symbols: currentAlphabet.alphabet.getSymbols()
+      };
+      
+      // Convertir a JSON con formato legible
+      const jsonString = JSON.stringify(exportData, null, 2);
+      
+      // Crear un blob con el contenido JSON
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      
+      // Crear URL para el blob
+      const url = URL.createObjectURL(blob);
+      
+      // Crear un elemento de enlace para la descarga
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${currentAlphabet.name.replace(/\s+/g, '_').toLowerCase()}.json`;
+      
+      // Simular clic para iniciar la descarga
+      document.body.appendChild(a);
+      a.click();
+      
+      // Limpiar
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (error) {
+      console.error('Error al exportar el alfabeto:', error);
+    }
+  }
+  
+  const importAlphabetFromJson = () => {
+    // Crear un input de tipo file invisible
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.json,application/json';
+    
+    // Manejar el evento de cambio cuando se selecciona un archivo
+    fileInput.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      
+      reader.onload = (event) => {
+        try {
+          const jsonData = JSON.parse(event.target.result);
+          
+          // Extraer símbolos del JSON según su formato
+          let symbolsObj: Record<string, boolean> = {};
+          let alphabetName = selectedAlphabet; // Usar el nombre actual por defecto
+          
+          // Formato 1: {"name": "...", "symbols": ["a", "b", "c"]}
+          if (jsonData.name && Array.isArray(jsonData.symbols)) {
+            // Convertir array a objeto Record<string, boolean>
+            jsonData.symbols.forEach((symbol: string) => {
+              symbolsObj[symbol] = true;
+            });
+            alphabetName = jsonData.name;
+          }
+          // Formato 2: {"symbols": {"a": true, "b": true, ...}}
+          else if (jsonData.symbols && typeof jsonData.symbols === 'object') {
+            // Usar directamente el objeto de símbolos
+            symbolsObj = jsonData.symbols;
+            // Si no hay nombre, usar el nombre del archivo o el alfabeto actual
+            alphabetName = file.name.replace('.json', '') || selectedAlphabet;
+          }
+          // Formato 3: ["a", "b", "c"]
+          else if (Array.isArray(jsonData)) {
+            // Convertir array a objeto Record<string, boolean>
+            jsonData.forEach((symbol: string) => {
+              symbolsObj[symbol] = true;
+            });
+          }
+          // Formato no reconocido
+          else {
+            alert('El formato del JSON no es reconocido. Debe contener símbolos en algún formato válido.');
+            return;
+          }
+          
+          // Verificar si ya existe un alfabeto con ese nombre
+          const existingIndex = alphabets.findIndex(a => a.name === alphabetName);
+          
+          if (existingIndex !== -1) {
+            // Actualizar alfabeto existente
+            const updatedAlphabets = [...alphabets];
+            updatedAlphabets[existingIndex].alphabet = new Alphabet(symbolsObj);
+            setAlphabets(updatedAlphabets);
+            setSelectedAlphabet(alphabetName);
+          } else {
+            // Crear nuevo alfabeto
+            const newAlphabetState = {
+              name: alphabetName,
+              alphabet: new Alphabet(symbolsObj)
+            };
+            setAlphabets([...alphabets, newAlphabetState]);
+            setSelectedAlphabet(alphabetName);
+          }
+          
+          // Actualizar la vista JSON
+          setJsonConfig(JSON.stringify({ symbols: symbolsObj }, null, 2));
+          
+          // Mostrar mensaje de éxito
+          alert(`Alfabeto "${alphabetName}" importado correctamente con ${Object.keys(symbolsObj).length} símbolos.`);
+          
+        } catch (error) {
+          console.error('Error al importar el alfabeto:', error);
+          alert('Error al procesar el archivo JSON. Verifique que sea un JSON válido.');
+        }
+      };
+      
+      reader.readAsText(file);
+    };
+    
+    // Simular clic en el input
+    document.body.appendChild(fileInput);
+    fileInput.click();
+    
+    // Limpiar
+    setTimeout(() => {
+      document.body.removeChild(fileInput);
+    }, 100);
+  }
 
   return (
     <div className="space-y-6">
@@ -165,11 +297,11 @@ export function AlphabetManager() {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button variant="outline">
+          <Button variant="outline" onClick={importAlphabetFromJson}>
             <Upload className="h-4 w-4 mr-2" />
             Importar
           </Button>
-          <Button>
+          <Button onClick={exportAlphabetAsJson}>
             <Download className="h-4 w-4 mr-2" />
             Exportar
           </Button>
@@ -179,7 +311,7 @@ export function AlphabetManager() {
       <Card>
         <CardHeader>
           <CardTitle>Operaciones con Alfabetos</CardTitle>
-          <CardDescription>Combine alfabetos y verifique pertenencia de símbolos</CardDescription>
+          <CardDescription>Verifique pertenencia de simbolos</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -209,13 +341,7 @@ export function AlphabetManager() {
               )}
             </div>
 
-            <div>
-              <Label>Combinar con otro alfabeto</Label>
-              <div className="flex gap-2 mt-1">
-                <Input placeholder="Símbolos separados por coma" />
-                <Button>Combinar</Button>
-              </div>
-            </div>
+
           </div>
         </CardContent>
       </Card>

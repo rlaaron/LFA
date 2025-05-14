@@ -214,7 +214,7 @@ export default function Home() {
             </div>
           </div>
           
-          <Link href="/app" className="block mt-6">
+          <Link href="https://github.com/rlaaron/LFA/blob/main/README.md" className="block mt-6" target="_blank" rel="noopener noreferrer">
             <Button 
               className="w-full transition-all duration-300 hover:scale-105" 
               variant="outline"
@@ -256,30 +256,14 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground">
                   Contribuye con código para mejorar las funcionalidades o agregar nuevas características.
                 </p>
-                <Button className="mt-3 w-full" variant="outline" size="sm">
-                  <Github className="mr-2 h-4 w-4" /> Ver Repositorio
+                <Button className="mt-3 w-full" variant="outline" size="sm" asChild>
+                  <Link href="https://github.com/rlaaron/LFA" target="_blank" rel="noopener noreferrer">
+                    <Github className="mr-2 h-4 w-4" /> Ver Repositorio
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
-            
-            <Card className="overflow-hidden border-primary/10 hover:border-primary/30 transition-all duration-300 hover:shadow-md hover:scale-[1.02]">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Lightbulb className="h-4 w-4 text-primary" />
-                  </div>
-                  Ideas y Sugerencias
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">
-                  Comparte ideas para nuevas funcionalidades o mejoras a través de nuestro sistema de issues.
-                </p>
-                <Button className="mt-3 w-full" variant="outline" size="sm">
-                  Enviar Sugerencias
-                </Button>
-              </CardContent>
-            </Card>
+
           </div>
         </section>
 

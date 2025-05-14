@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -8,6 +8,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Play, Check, X, AlertTriangle, Clock } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Alphabet } from "@/lib/models/Alphabet"
+import { WordService } from "@/lib/services/WordService"
+import { LanguageService } from "@/lib/services/LanguageService"
+import { useAlphabets } from "@/contexts/AlphabetContext"
 
 type TestCase = {
   id: string
@@ -23,6 +27,11 @@ export function TestCases() {
   const [activeTab, setActiveTab] = useState("basic")
   const [progress, setProgress] = useState(0)
   const [running, setRunning] = useState(false)
+  const { alphabets } = useAlphabets()
+  
+  // Servicios para ejecutar las pruebas
+  const wordService = new WordService()
+  const languageService = new LanguageService()
 
   const [testCases, setTestCases] = useState<Record<string, TestCase[]>>({
     basic: [
@@ -134,7 +143,7 @@ export function TestCases() {
     resetTests[category] = resetTests[category].map((test) => ({ ...test, status: "pending", time: undefined }))
     setTestCases(resetTests)
 
-    // Simulación de ejecución de pruebas
+    // Ejecución de pruebas reales
     const totalTests = testCases[category].length
     let completedTests = 0
 
@@ -150,28 +159,99 @@ export function TestCases() {
       updatedTests[category][index] = { ...updatedTests[category][index], status: "running" }
       setTestCases(updatedTests)
 
-      // Simular tiempo de ejecución
-      const executionTime = Math.random() * 1000 + 500
+      const currentTest = testCases[category][index]
+      const startTime = performance.now()
+      let success = false
+      let actualOutput = ""
 
+      try {
+        // Obtener el alfabeto apropiado para la prueba
+        let testAlphabet: Alphabet
+        
+        switch (category) {
+          case "basic":
+            // Alfabeto de pares binarios
+            testAlphabet = new Alphabet({
+              '00': true, '01': true, '10': true, '11': true
+            })
+            break
+          case "intermediate":
+            // Alfabeto con símbolos de longitud variable
+            testAlphabet = new Alphabet({
+              'a': true, 'bb': true, 'ccc': true, 'dddd': true
+            })
+            break
+          case "advanced":
+            // Alfabeto con símbolos compuestos
+            testAlphabet = new Alphabet({
+              '++': true, '+-+': true, '-+-': true, '---': true, '++++': true, '----': true
+            })
+            break
+          case "extreme":
+            // Alfabeto para casos extremos
+            testAlphabet = new Alphabet({
+              'a': true, 'b': true, 'aaa': true, 'bbb': true,
+              'aaaaa': true, 'bbbbb': true, 'aaaaaaaaa': true, 'bbbbbbbbb': true,
+              'aba': true, 'bab': true, 'ababa': true, 'babab': true,
+              'aabababa': true, 'bababbab': true
+            })
+            break
+          case "special":
+            // Alfabeto para casos especiales
+            if (currentTest.id === "s2") {
+              testAlphabet = new Alphabet({
+                '😀': true, '👍': true, '🎉': true, '😀👍': true, '👍🎉': true
+              })
+            } else {
+              testAlphabet = new Alphabet({ 'a': true })
+            }
+            break
+          default:
+            // Alfabeto por defecto
+            testAlphabet = alphabets[0]?.alphabet || new Alphabet({ 'a': true })
+        }
+
+        // Ejecutar la prueba según su tipo
+        if (currentTest.name.includes("Reflexión")) {
+          // Prueba de reflexión
+          actualOutput = wordService.reflect(currentTest.input, testAlphabet)
+          success = actualOutput === currentTest.expectedOutput
+        } else if (currentTest.name.includes("Palíndromos")) {
+          // Prueba de palíndromos
+          const isPalindrome = wordService.isPalindrome(currentTest.input, testAlphabet)
+          actualOutput = isPalindrome ? "Es palíndromo" : "No es palíndromo"
+          success = actualOutput === currentTest.expectedOutput
+        } else {
+          // Prueba de validación
+          const isValid = wordService.isValid(currentTest.input, testAlphabet)
+          actualOutput = isValid ? "Válido" : "Inválido"
+          success = actualOutput === currentTest.expectedOutput
+        }
+      } catch (error) {
+        console.error(`Error en prueba ${currentTest.id}:`, error)
+        actualOutput = "Error: " + (error instanceof Error ? error.message : String(error))
+        success = false
+      }
+
+      const endTime = performance.now()
+      const executionTime = endTime - startTime
+
+      // Actualizar resultado
       setTimeout(() => {
-        // Simular resultado (80% de probabilidad de éxito)
-        const success = Math.random() > 0.2
-        const time = Math.round(executionTime)
-
         const finalTests = { ...testCases }
         finalTests[category][index] = {
           ...finalTests[category][index],
           status: success ? "passed" : "failed",
-          time,
+          time: Math.round(executionTime),
         }
         setTestCases(finalTests)
 
         completedTests++
         setProgress(Math.round((completedTests / totalTests) * 100))
 
-        // Ejecutar siguiente prueba
-        runNextTest(index + 1)
-      }, executionTime)
+        // Ejecutar siguiente prueba con un pequeño retraso para visualizar el progreso
+        setTimeout(() => runNextTest(index + 1), 300)
+      }, 500) // Pequeño retraso para mejor visualización
     }
 
     // Iniciar ejecución
