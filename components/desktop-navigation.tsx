@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { SquareIcon as AlphabetSquare, BookText, Code2, FileText, FlaskConical } from "lucide-react"
+import { SquareIcon as AlphabetSquare, BookText, Code2, FileText, FlaskConical, Braces } from "lucide-react"
 
 export function DesktopNavigation() {
   return (
@@ -34,6 +34,12 @@ export function DesktopNavigation() {
         <a href="#tests">
           <FlaskConical className="mr-2 h-4 w-4" />
           Pruebas
+        </a>
+      </Button>
+      <Button variant="ghost" className="w-full justify-start" asChild>
+        <a href="#morse">
+          <Braces className="mr-2 h-4 w-4" />
+          Código Morse
         </a>
       </Button>
     </div>

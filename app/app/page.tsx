@@ -7,6 +7,7 @@ import { WordOperations } from "@/components/word-operations"
 import { LanguageOperations } from "@/components/language-operations"
 import { GrammarProcessor } from "@/components/grammar-processor"
 import { TestCases } from "@/components/test-cases"
+import { MorseCodeTranslator } from "@/components/morse-code-translator"
 
 export default function AppPage() {
   return (
@@ -43,6 +44,9 @@ export default function AppPage() {
               </TabsContent>
               <TabsContent value="tests">
                 <TestCases />
+              </TabsContent>
+              <TabsContent value="morse">
+                <MorseCodeTranslator />
               </TabsContent>
             </Tabs>
           </div>
