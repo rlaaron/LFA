@@ -4,13 +4,13 @@ import { AlphabetManager } from "@/components/alphabet-manager"
 import { WordOperations } from "@/components/word-operations"
 import { LanguageOperations } from "@/components/language-operations"
 import { GrammarProcessor } from "@/components/grammar-processor"
-import { TestCases } from "@/components/test-cases"
+// import { TestCases } from "@/components/test-cases"
 import { MorseCodeTranslator } from "@/components/morse-code-translator"
 
 export function MobileNavigation() {
   return (
     <Tabs defaultValue="alphabet" className="w-full">
-      <TabsList className="grid grid-cols-6 mb-4">
+      <TabsList className="grid grid-cols-5 mb-4">
         <TabsTrigger value="alphabet" className="text-xs p-1">
           Alfabetos
         </TabsTrigger>
@@ -22,9 +22,6 @@ export function MobileNavigation() {
         </TabsTrigger>
         <TabsTrigger value="grammar" className="text-xs p-1">
           Gramáticas
-        </TabsTrigger>
-        <TabsTrigger value="tests" className="text-xs p-1">
-          Pruebas
         </TabsTrigger>
         <TabsTrigger value="morse" className="text-xs p-1">
           Morse
@@ -42,9 +39,7 @@ export function MobileNavigation() {
       <TabsContent value="grammar">
         <GrammarProcessor />
       </TabsContent>
-      <TabsContent value="tests">
-        <TestCases />
-      </TabsContent>
+      {/* Tests section removed */}
       <TabsContent value="morse">
         <MorseCodeTranslator />
       </TabsContent>

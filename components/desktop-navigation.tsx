@@ -30,12 +30,7 @@ export function DesktopNavigation() {
           Gramáticas
         </a>
       </Button>
-      <Button variant="ghost" className="w-full justify-start" asChild>
-        <a href="#tests">
-          <FlaskConical className="mr-2 h-4 w-4" />
-          Pruebas
-        </a>
-      </Button>
+      {/* Tests section removed */}
       <Button variant="ghost" className="w-full justify-start" asChild>
         <a href="#morse">
           <Braces className="mr-2 h-4 w-4" />
